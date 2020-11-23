@@ -16,9 +16,10 @@ type Props = {
   bricks: Brick[]
   addBricks: (bricks: Brick[]) => void
   removeBrick: (brick: Brick) => void
+  setBricks: (bricks: Brick[]) => void
 }
 
-export const ReactrisContext = React.createContext<Props>({
+export const ViewContext = React.createContext<Props>({
   tileSize: 0,
   height: 20,
   width: 10,
@@ -27,6 +28,7 @@ export const ReactrisContext = React.createContext<Props>({
   bricks: [],
   addBricks: () => {},
   removeBrick: () => {},
+  setBricks: () => {},
 })
 
 type ProviderProps = {
@@ -34,7 +36,7 @@ type ProviderProps = {
   width?: number
 }
 
-export const ReactrisProvider = ({
+export const ViewProvider = ({
   children,
   height = 20,
   width = 10,
@@ -69,7 +71,7 @@ export const ReactrisProvider = ({
   )
 
   return (
-    <ReactrisContext.Provider
+    <ViewContext.Provider
       value={{
         tileSize,
         width,
@@ -79,9 +81,10 @@ export const ReactrisProvider = ({
         bricks,
         addBricks,
         removeBrick,
+        setBricks,
       }}
     >
       {children}
-    </ReactrisContext.Provider>
+    </ViewContext.Provider>
   )
 }

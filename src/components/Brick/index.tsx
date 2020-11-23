@@ -1,7 +1,7 @@
 import React, { ReactElement, useContext } from 'react'
 import styled from 'styled-components'
 import { darken, lighten } from 'polished'
-import { ReactrisContext } from '../../ReactrisContext'
+import { ViewContext } from '../../ViewContext'
 import { Brick } from '../../types'
 
 const BrickNode = styled('div')<{ color: Brick['color']; size: number }>`
@@ -16,8 +16,10 @@ const BrickNode = styled('div')<{ color: Brick['color']; size: number }>`
   position: absolute;
 `
 
-export const BrickComponent = ({ color, column, line }: Brick): ReactElement => {
-  const { tileSize, y, height } = useContext(ReactrisContext)
+export const BrickComponent = ({ color, column, line, moveOffset = 0 }: Brick): ReactElement => {
+  const { tileSize, y, height } = useContext(ViewContext)
+  const moveAdjustment = moveOffset ? moveOffset * tileSize : 0
+  const top = `${y + (height - line - 1) * tileSize + moveAdjustment}px`
   return (
     <BrickNode
       color={color}
@@ -25,7 +27,7 @@ export const BrickComponent = ({ color, column, line }: Brick): ReactElement => 
       style={{
         width: `${tileSize}px`,
         height: `${tileSize}px`,
-        top: `${y + (height - line - 1) * tileSize}px`,
+        top,
         left: `${column * tileSize}px`,
       }}
     />

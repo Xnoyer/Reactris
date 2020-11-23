@@ -2,13 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 import { App } from './App'
-import { ReactrisProvider } from './ReactrisContext'
+import { ViewProvider } from './ViewContext'
 
 ReactDOM.render(
   <React.StrictMode>
-    <ReactrisProvider>
+    <ViewProvider>
       <App />
-    </ReactrisProvider>
+    </ViewProvider>
   </React.StrictMode>,
   document.getElementById('root'),
 )
