@@ -7,6 +7,10 @@ import React, {
 } from 'react'
 import { Brick } from './types'
 
+type GameOptions = {
+  lockDelay?: boolean
+}
+
 type Props = {
   tileSize: number
   height: number
@@ -17,6 +21,7 @@ type Props = {
   addBricks: (bricks: Brick[]) => void
   removeBrick: (brick: Brick) => void
   setBricks: (bricks: Brick[]) => void
+  gameOptions: GameOptions
 }
 
 export const ViewContext = React.createContext<Props>({
@@ -29,17 +34,24 @@ export const ViewContext = React.createContext<Props>({
   addBricks: () => {},
   removeBrick: () => {},
   setBricks: () => {},
+  gameOptions: {
+    lockDelay: true,
+  },
 })
 
 type ProviderProps = {
   height?: number
   width?: number
+  gameOptions?: GameOptions
 }
 
 export const ViewProvider = ({
   children,
   height = 20,
   width = 10,
+  gameOptions = {
+    lockDelay: true,
+  },
 }: PropsWithChildren<ProviderProps>): ReactElement => {
   const [tileSize, x, y] = useMemo(() => {
     const clientWidth = document.documentElement.clientWidth
@@ -82,6 +94,7 @@ export const ViewProvider = ({
         addBricks,
         removeBrick,
         setBricks,
+        gameOptions
       }}
     >
       {children}

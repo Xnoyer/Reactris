@@ -34,13 +34,13 @@ export const LEVEL_SPEED: Record<number, number> = {
 }
 
 export const THEME = [
+  '#eecf6d',
+  '#d5ac4e',
+  '#8b6220',
+  '#720e07',
+  '#45050c',
+  '#c33149',
   '#3b429f',
-  '#aa7dce',
-  '#f5d7e3',
-  '#f4a5ae',
-  '#a8577e',
-  '#ef6351',
-  '#83b692',
 ]
 
 const O: LogicBrick[][] = [

@@ -6,7 +6,7 @@ import { ViewProvider } from './ViewContext'
 
 ReactDOM.render(
   <React.StrictMode>
-    <ViewProvider>
+    <ViewProvider width={14}>
       <App />
     </ViewProvider>
   </React.StrictMode>,

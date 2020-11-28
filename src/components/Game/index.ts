@@ -1,31 +1,21 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef } from 'react'
 import { transparentize } from 'polished'
 import { ViewContext } from '../../ViewContext'
 import { Brick, GameField } from '../../types'
 import { Figure } from '../../Figure'
-import { FIELD_FOR_DEBUG, LEVEL_SPEED } from '../../constants'
+import { LEVEL_SPEED } from '../../constants'
 
 const FADE_TIMEOUT = 200
 
-const convertToBricks = (
-  gameGrid: GameField,
-  height: number,
-  figure: Figure,
-): Brick[] => {
+const convertToBricks = (gameGrid: GameField, height: number): Brick[] => {
   return gameGrid.flatMap((row, rowIndex) => {
     return row.flatMap((cell, columnIndex) => {
       if (cell) {
-        const isFigure = figure.bricks.find(
-          (brick) =>
-            brick[0] + figure.columnOffset === columnIndex &&
-            brick[1] + figure.lineOffset === rowIndex,
-        )
         return [
           {
             line: height - rowIndex - 1,
             column: columnIndex,
             color: cell,
-            moveOffset: isFigure ? figure.moveOffset : undefined,
           },
         ]
       }
@@ -44,31 +34,47 @@ const performFullLineCheck = (gameGrid: GameField) => {
   return rowsToRemove
 }
 
-export const Game = () => {
-  const { width, height, setBricks } = useContext(ViewContext)
-  /*const gameGrid = useRef<GameField>(
+export const Game = (): null => {
+  const { width, height, setBricks, gameOptions } = useContext(ViewContext)
+  const gameGrid = useRef<GameField>(
     new Array(height).fill((() => new Array(width).fill(''))()),
-  )*/
-  const gameGrid = useRef<GameField>(FIELD_FOR_DEBUG)
+  )
   const gameGridBeforeFx = useRef<GameField>()
   const isGameRunning = useRef(true)
   const level = useRef(0)
   const lastLineMove = useRef(0)
   const figure = useRef<Figure>(new Figure())
   const rowsToRemove = useRef<number[]>([])
+  const resetNextFrame = useRef<boolean>(false)
 
   const drawBricks = useCallback(() => {
     setBricks(
       convertToBricks(
-        figure.current.getFigureInField(gameGrid.current),
+        figure.current.getFigureInField(
+          figure.current.getShadowBricks(gameGrid.current),
+        ),
         height,
-        figure.current,
       ),
     )
   }, [setBricks])
 
+  const freezeFigure = useCallback(() => {
+    gameGrid.current = figure.current.getFigureInField(gameGrid.current)
+    figure.current = new Figure()
+
+    if (figure.current.isGonnaCollide(gameGrid.current)) {
+      isGameRunning.current = false
+    }
+
+    rowsToRemove.current = performFullLineCheck(gameGrid.current)
+    gameGridBeforeFx.current = JSON.parse(JSON.stringify(gameGrid.current))
+  }, [])
+
   const gameCycle = useCallback((elapsedTime: number) => {
-    const timeFromLastTick = elapsedTime - lastLineMove.current
+    const timeFromLastTick = resetNextFrame.current
+      ? 0
+      : elapsedTime - lastLineMove.current
+    resetNextFrame.current = false
 
     if (rowsToRemove.current.length) {
       if (timeFromLastTick >= FADE_TIMEOUT) {
@@ -94,26 +100,22 @@ export const Game = () => {
     } else {
       const speed = level.current <= 29 ? LEVEL_SPEED[level.current] : 10
       if (timeFromLastTick >= speed) {
-        if (figure.current.moveOffset > .5) {
+        if (gameOptions.lockDelay) {
+          if (figure.current.isGonnaCollide(gameGrid.current)) {
+            freezeFigure()
+          } else {
+            figure.current.moveDown()
+          }
+        } else {
           figure.current.moveDown()
         }
-        if (figure.current.isGonnaCollide(gameGrid.current)) {
-          gameGrid.current = figure.current.getFigureInField(gameGrid.current)
-          figure.current = new Figure()
-
-          if (figure.current.isGonnaCollide(gameGrid.current)) {
-            isGameRunning.current = false
-          }
-
-          rowsToRemove.current = performFullLineCheck(gameGrid.current)
-          gameGridBeforeFx.current = JSON.parse(
-            JSON.stringify(gameGrid.current),
-          )
+        if (
+          figure.current.isGonnaCollide(gameGrid.current) &&
+          !gameOptions.lockDelay
+        ) {
+          freezeFigure()
         }
-        figure.current.moveOffset = 0
         lastLineMove.current = elapsedTime
-      } else {
-        figure.current.moveOffset = timeFromLastTick / speed
       }
     }
 
@@ -133,23 +135,26 @@ export const Game = () => {
     switch (event.key) {
       case 'ArrowLeft':
         figure.current.moveLeft(gameGrid.current)
-        drawBricks()
         break
       case 'ArrowRight':
         figure.current.moveRight(gameGrid.current)
-        drawBricks()
         break
       case 'ArrowUp':
         figure.current.rotate(gameGrid.current)
-        drawBricks()
         break
       case 'ArrowDown':
-        if (!figure.current.isGonnaCollide(gameGrid.current)) {
-          figure.current.moveDown()
+        figure.current.moveDown()
+        if (figure.current.isGonnaCollide(gameGrid.current)) {
+          freezeFigure()
+          resetNextFrame.current = true
         }
-        drawBricks()
         break
+      case ' ':
+        figure.current.drop(gameGrid.current)
+        freezeFigure()
+        resetNextFrame.current = true
     }
+    drawBricks()
   }, [])
 
   useEffect(() => {

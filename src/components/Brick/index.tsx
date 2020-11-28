@@ -16,10 +16,9 @@ const BrickNode = styled('div')<{ color: Brick['color']; size: number }>`
   position: absolute;
 `
 
-export const BrickComponent = ({ color, column, line, moveOffset = 0 }: Brick): ReactElement => {
+export const BrickComponent = ({ color, column, line }: Brick): ReactElement => {
   const { tileSize, y, height } = useContext(ViewContext)
-  const moveAdjustment = moveOffset ? moveOffset * tileSize : 0
-  const top = `${y + (height - line - 1) * tileSize + moveAdjustment}px`
+  const top = `${y + (height - line - 1) * tileSize}px`
   return (
     <BrickNode
       color={color}
